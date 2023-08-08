@@ -15,6 +15,8 @@ RUN CGO_ENABLED=0 go build -v -o /usr/local/bin/lets-school-central-backend main
 
 FROM alpine:3.18 AS build-release-stage
 
+ENV RUN_MIGRATIONS=1
+
 COPY --from=build-stage /usr/local/bin/lets-school-central-backend /app
 
 EXPOSE 8080

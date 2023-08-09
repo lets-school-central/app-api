@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.20.6-alpine3.18 AS build-stage
+FROM golang:1.20.6-alpine3.18 AS builder
 
 WORKDIR /usr/src/app
 
@@ -13,12 +13,24 @@ COPY . ./
 RUN mkdir -p /usr/local/bin
 RUN CGO_ENABLED=0 go build -v -o /usr/local/bin/lets-school-central-backend main.go
 
-FROM alpine:3.18 AS build-release-stage
+ADD https://github.com/benbjohnson/litestream/releases/download/v0.3.11/litestream-v0.3.11-linux-amd64.tar.gz /tmp/litestream.tar.gz
+RUN tar -C /usr/local/bin -xzf /tmp/litestream.tar.gz
+
+FROM alpine:3.18
 
 ENV RUN_MIGRATIONS=1
 
-COPY --from=build-stage /usr/local/bin/lets-school-central-backend /app
+COPY .docker/litestream.yml /etc/litestream.yml
+COPY .docker/run.sh /scripts/run.sh
 
-EXPOSE 8080
+COPY --from=builder /usr/local/bin/lets-school-central-backend /usr/local/bin/lets-school-central-backend
+COPY --from=builder /usr/local/bin/litestream /usr/local/bin/litestream
 
-ENTRYPOINT /app serve --http=0.0.0.0:8080
+RUN apk add bash
+
+RUN mkdir -p /data
+
+ENV PORT=8080
+EXPOSE ${PORT}
+
+CMD [ "/scripts/run.sh" ]

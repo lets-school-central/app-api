@@ -24,7 +24,10 @@ COPY .docker/litestream.yml /etc/litestream.yml
 COPY .docker/run.sh /scripts/run.sh
 
 COPY --from=builder /usr/local/bin/lets-school-central-backend /usr/local/bin/lets-school-central-backend
-COPY --from=builder /usr/local/bin/litestream /usr/local/bin/litestream
+
+RUN chmod +x /scripts/run.sh
+RUN chmod +x /usr/local/bin/litestream
+RUN chmod +x /usr/local/bin/lets-school-central-backend
 
 RUN apk add bash
 
